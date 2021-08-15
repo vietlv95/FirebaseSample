@@ -1,0 +1,9 @@
+FirebaseSample.xcworkspace/xcuserdata/
+Pods/
+*.DS_Store
+FirebaseSample.xcodeproj/xcuserdata/
+build/
+fastlane/report.xml
+*.zip
+*.ipa
+*.dSYM
