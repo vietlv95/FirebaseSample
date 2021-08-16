@@ -27,11 +27,21 @@ class SignUpViewController: UIViewController {
     
     @IBAction func signUpButtonDidTap(_ sender: Any) {
         if isValidInformantion() {
-            
+            Auth.auth().createUser(withEmail: emailTextField.text!, password: passwordTextField.text!) { authResult, error in
+                if let user = authResult?.user {
+                    let vc = MainTabbarViewController()
+                    self.navigationController?.pushViewController(vc, animated: true)
+                    
+                    self.addNewUserToCollection(user: user)
+                }
+            }
         }
     }
     
     func addNewUserToCollection(user: User) {
+        let collection = Firestore.firestore().collection("User")
+        let userRef = collection.document(user.uid)
+        userRef.setData(["DisplayName": user.uid])
         
     }
     

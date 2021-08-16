@@ -11,13 +11,16 @@ import Firebase
 class TodoListViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
-    
+    let db = Firestore.firestore().collection("User")
+    var userDocument: DocumentReference!
+    var todoCollection: CollectionReference!
     
     var todos: [Todo]?
     override func viewDidLoad() {
         super.viewDidLoad()
         config()
-    
+        userDocument = db.document(Auth.auth().currentUser!.uid)
+        todoCollection = userDocument.collection("TodoList")
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -26,13 +29,18 @@ class TodoListViewController: UIViewController {
     }
     
     private func config() {
-      title = "People"
+      title = "Todo List"
       tableView.delegate = self
       tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
     }
     
     private func fetchData() {
-        
+        todoCollection.addSnapshotListener { snapShot, error in
+            self.todos = snapShot?.documents.map({
+                return Todo.init(snapShot: $0)
+            })
+            self.tableView.reloadData()
+        }
     }
 
     @IBAction func addName(_ sender: UIBarButtonItem) {
@@ -44,14 +52,16 @@ class TodoListViewController: UIViewController {
     func update(todoString: String,  index: Int) {
         let todo = self.todos![index]
         
-        
+        let document = todoCollection.document(todo.id)
+        document.setData(["todo": todoString])
     }
     
     func save(todoString: String) {
         let newTodo = Todo()
         newTodo.id = UUID().uuidString
         newTodo.todo = todoString
-        
+        let document = todoCollection.document(newTodo.id)
+        document.setData(["todo": todoString])
     }
 }
 
@@ -80,7 +90,8 @@ extension TodoListViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
     if editingStyle == .delete {
         let todo = self.todos![indexPath.item]
-        
+        let document = todoCollection.document(todo.id)
+        document.delete()
     }
   }
   
